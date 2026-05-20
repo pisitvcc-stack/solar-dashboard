@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard ใบเสนอราคา</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --bg: #f9fafb;
+            --border: #e5e7eb;
+            color-scheme: light;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            border-left: 5px solid var(--primary);
+        }
+
+        header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+            color: var(--primary);
+        }
+
+        header p {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border);
+        }
+
+        .card.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .card.primary h3 {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .card.primary .value {
+            font-size: 32px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .card h3 {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--text-light);
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .card .value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .card .subtext {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-top: 8px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-light);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+            bottom: -2px;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-btn:hover {
+            color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        thead {
+            background: var(--bg);
+            border-top: 2px solid var(--border);
+            border-bottom: 2px solid var(--border);
+        }
+
+        th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 14px 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        tbody tr:hover {
+            background: var(--bg);
+        }
+
+        .price {
+            font-weight: 600;
+            color: var(--success);
+        }
+
+        .warranty {
+            background: #dbeafe;
+            color: var(--primary);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-company {
+            background: #e0e7ff;
+            color: #4f46e5;
+        }
+
+        .badge-status-ok {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .detail-section {
+            background: var(--bg);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .detail-section h4 {
+            font-size: 14px;
+            text-transform: uppercase;
+            color: var(--text-light);
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-item .label {
+            color: var(--text-light);
+            font-size: 13px;
+        }
+
+        .detail-item .value {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .specs-list {
+            list-style: none;
+        }
+
+        .specs-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .specs-list li:before {
+            content: "✓";
+            color: var(--success);
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .specs-list li:last-child {
+            border-bottom: none;
+        }
+
+        .company-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid var(--primary);
+            margin-bottom: 20px;
+        }
+
+        .company-card h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        .price-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 10px 0;
+        }
+
+        .price-item {
+            padding: 10px;
+            background: var(--bg);
+            border-radius: 6px;
+            border-left: 3px solid var(--warning);
+        }
+
+        .price-item.total {
+            border-left-color: var(--success);
+        }
+
+        .price-item .label {
+            font-size: 12px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .price-item .amount {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .price-item.total .amount {
+            color: var(--success);
+            font-size: 20px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-light);
+            font-size: 12px;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .price-row {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 20px;
+            }
+
+            .tab-btn {
+                padding: 10px 15px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>📊 Dashboard ใบเสนอราคา</h1>
+            <p>สรุปข้อมูลราคา สเปค และการรับประกัน จากแต่ละบริษัท (3 ใบเสนอราคา)</p>
+        </header>
+
+        <!-- Summary Cards -->
+        <div class="grid">
+            <div class="card primary">
+                <h3>จำนวนบริษัท</h3>
+                <div class="value">3</div>
+                <div class="subtext">บริษัทที่เสนอราคา</div>
+            </div>
+            <div class="card">
+                <h3>ประกันการติดตั้ง (สูงสุด)</h3>
+                <div class="value">5 ปี</div>
+                <div class="subtext">บรรเจิด วิศวกรรม</div>
+            </div>
+            <div class="card">
+                <h3>ราคาต่ำสุด</h3>
+                <div class="value">฿155,000</div>
+                <div class="subtext">ซันพาวเวอร์ โปร</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div style="background: white; border-radius: 12px; padding: 0; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); overflow: hidden;">
+            <div style="padding: 20px; border-bottom: 1px solid var(--border);">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab('comparison')">📊 เปรียบเทียบราคา</button>
+                    <button class="tab-btn" onclick="switchTab('warranty')">🛡️ เปรียบเทียบประกัน</button>
+                    <button class="tab-btn" onclick="switchTab('quotation-details')">📄 รายละเอียดใบเสนอราคา</button>
+                    <button class="tab-btn" onclick="switchTab('details')">📋 สรุปรายละเอียด</button>
+                    <button class="tab-btn" onclick="switchTab('breakdown')">💰 การคำนวณราคา</button>
+                </div>
+            </div>
+
+            <!-- Tab 1: Comparison -->
+            <div id="comparison" class="tab-content active" style="padding: 30px;">
+                <h2 style="margin-bottom: 20px; color: var(--primary);">📊 เปรียบเทียบราคาแต่ละบริษัท</h2>
+
+                <div class="detail-section">
+                    <h4>📈 ตารางเปรียบเทียบราคา</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>บริษัท</th>
+                                <th>เลขที่ QT</th>
+                                <th>ยอดรวม (ก่อน)</th>
+                                <th>ส่วนลด</th>
+                                <th>ยอดหลังลด</th>
+                                <th>ภาษี 7%</th>
+                                <th>จำนวนเงินทั้งสิ้น</th>
+                                <th>สถานะ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>PEA ENCOM</strong></td>
+                                <td>QT-20260429004</td>
+                                <td><span class="price">฿215,435</span></td>
+                                <td><span class="price">฿2,000</span></td>
+                                <td><span class="price">฿213,435</span></td>
+                                <td><span class="price">฿14,940.45</span></td>
+                                <td><span class="price badge-status-ok">฿228,375.45</span></td>
+                                <td><span class="badge badge-status-ok">✅</span></td>
+                            </tr>
+                            <tr style="background: #f0f9ff;">
+                                <td><strong>บรรเจิด วิศวกรรม 1994</strong></td>
+                                <td>QT2026050012</td>
+                                <td><span class="price">฿175,000</span></td>
+                                <td><span class="price">฿6,000</span></td>
+                                <td><span class="price">฿169,000</span></td>
+                                <td><span class="price">-*</span></td>
+                                <td><span class="price badge-status-ok">฿169,000</span></td>
+                                <td><span class="badge badge-status-ok">✅</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>ซันพาวเวอร์ โปร จำกัด</strong></td>
+                                <td>QT2026050078</td>
+                                <td><span class="price">฿155,000</span></td>
+                                <td><span class="price">-</span></td>
+                                <td><span class="price">฿155,000</span></td>
+                                <td><span class="price">-*</span></td>
+                                <td><span class="price badge-status-ok">฿155,000</span></td>
+                                <td><span class="badge badge-status-ok">✅</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="detail-section">
+                    <h4>💡 สิ่งที่ควรพิจารณา</h4>
+                    <ul class="specs-list">
+                        <li>PEA ENCOM: ยอดรวม 215,435 → หักลด 2,000 → 213,435 + VAT 7% → **228,375.45 บาท**</li>
+                        <li>บรรเจิด วิศวกรรม: ยอดรวม 175,000 → หักลด 6,000 → **169,000 บาท (รวมภาษี 7% แล้ว)** ← เก็บเงินแค่นี้</li>
+                        <li>ซันพาวเวอร์ โปร: ยอดรวม 155,000 ไม่มีลด + VAT 7% → **165,850 บาท** (ต่ำสุด)</li>
+                        <li>💰 จำนวนเงินทั้งสิ้น: PEA ENCOM 228,375.45 | บรรเจิด 169,000 | ซันพาวเวอร์ 165,850 บาท</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Tab 2: Warranty Comparison -->
+            <div id="warranty" class="tab-content" style="padding: 30px;">
+                <h2 style="margin-bottom: 20px; color: var(--primary);">🛡️ เปรียบเทียบการรับประกัน</h2>
+
+                <div class="detail-section">
+                    <h4>📊 ตารางเปรียบเทียบประกัน</h4>
+                    <table style="margin-top: 15px;">
+                        <thead>
+                            <tr>
+                                <th>ประเภทประกัน</th>
+                                <th>PEA ENCOM</th>
+                                <th>บรรเจิด วิศวกรรม</th>
+                                <th>ซันพาวเวอร์ โปร</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>ประกันติดตั้ง</strong></td>
+                                <td><span class="warranty">1 ปี</span></td>
+                                <td><span class="warranty">5 ปี</span></td>
+                                <td><span class="warranty">3 ปี</span></td>
+                            </tr>
+                            <tr style="background: #f9fafb;">
+                                <td><strong>ประกันคุณภาพแผง (Panel Quality)</strong></td>
+                                <td><span class="warranty">12 ปี</span></td>
+                                <td>-</td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <td><strong>ประกันแผงโซลาร์เซลล์ (Product)</strong></td>
+                                <td>-</td>
+                                <td><span class="warranty">15 ปี</span></td>
+                                <td><span class="warranty">15/30 ปี*</span></td>
+                            </tr>
+                            <tr style="background: #f9fafb;">
+                                <td><strong>ประกันประสิทธิภาพ (Performance)</strong></td>
+                                <td>-</td>
+                                <td><span class="warranty">30 ปี</span></td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <td><strong>ประกันอินเวอร์เตอร์ (Solis)</strong></td>
+                                <td><span class="warranty">10 ปี</span></td>
+                                <td><span class="warranty">10 ปี</span></td>
+                                <td><span class="warranty">10 ปี (Huawei)</span></td>
+                            </tr>
+                            <tr style="background: #f9fafb;">
+                                <td><strong>ประกันแบตเตอรี่ (SUNWODA)</strong></td>
+                                <td><span class="warranty">10 ปี</span></td>
+                                <td>-</td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <td><strong>บริการหลังการขาย</strong></td>
+                                <td><span class="warranty">2 ปี (ล้าง/ตรวจ ปีละ 1)</span></td>
+                                <td><span class="warranty">3 ครั้ง (ปีละ 1)</span></td>
+                                <td><span class="warranty">2 ปี (ปีละ 1)</span></td>
+                            </tr>
+                            <tr style="background: #f9fafb;">
+                                <td><strong>บริการเพิ่มเติม</strong></td>
+                                <td><span class="warranty">✓ สำรวจฟรี</span></td>
+                                <td><span class="warranty">✓ Monitoring System</span></td>
+                                <td>-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="color: var(--text-light); font-size: 12px; margin-top: 15px; padding: 10px; background: #f0f9ff; border-radius: 4px;">
+                        <strong>หมายเหตุ:</strong>
+                        <br>* ซันพาวเวอร์: Product Warranty 15-30 ปี (จากผู้ผลิต)
+                        <br>** PEA ENCOM: ประกันคุณภาพแผง 12 ปี (สำหรับคุณภาพแผง)
+                    </p>
+                </div>
+
+                <div class="detail-section">
+                    <h4>🏆 สรุปเปรียบเทียบประกัน</h4>
+                    <div style="padding: 20px; background: white; border-radius: 8px; margin-top: 15px;">
+                        <div style="margin-bottom: 15px; padding: 12px; background: #f0fdf4; border-radius: 6px; border-left: 4px solid var(--success);">
+                            <div style="font-weight: 700; color: var(--success); margin-bottom: 5px;">✅ บรรเจิด วิศวกรรม - ประกันที่ครอบคลุมมากที่สุด</div>
+                            <ul style="margin-left: 20px; font-size: 13px; color: var(--text);">
+                                <li>ประกันติดตั้งยาวนาน 5 ปี</li>
+                                <li>ประกันประสิทธิภาพถึง 30 ปี (ยาวนานที่สุด)</li>
+                                <li>บริการตรวจสอบ 3 ครั้ง</li>
+                                <li>มี Monitoring System</li>
+                            </ul>
+                        </div>
+                        <div style="margin-bottom: 15px; padding: 12px; background: #f0f9ff; border-radius: 6px; border-left: 4px solid var(--primary);">
+                            <div style="font-weight: 700; color: var(--primary); margin-bottom: 5px;">✅ ซันพาวเวอร์ โปร - ประกันสมดุล</div>
+                            <ul style="margin-left: 20px; font-size: 13px; color: var(--text);">
+                                <li>ประกันแผงจากผู้ผลิต 15/30 ปี</li>
+                                <li>ประกันติดตั้ง 3 ปี</li>
+                                <li>ประกันอินเวอร์เตอร์ 10 ปี</li>
+                                <li>บริการล้างแผงฟรี 2 ปี</li>
+                            </ul>
+                        </div>
+                        <div style="margin-bottom: 15px; padding: 12px; background: #f0f9ff; border-radius: 6px; border-left: 4px solid var(--primary);">
+                            <div style="font-weight: 700; color: var(--primary); margin-bottom: 5px;">✅ PEA ENCOM - ประกันคุณภาพแผงยาวนาน</div>
+                            <ul style="margin-left: 20px; font-size: 13px; color: var(--text);">
+                                <li>ประกันคุณภาพแผง 12 ปี</li>
+                                <li>ประกันอินเวอร์เตอร์ Solis 10 ปี</li>
+                                <li>ประกันแบตเตอรี่ SUNWODA 10 ปี</li>
+                                <li>บริการล้าง/ตรวจ 2 ปี (ปีละ 1 ครั้ง)</li>
+                                <li>บริการสำรวจไซต์ฟรี</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Quotation Details -->
+            <div id="quotation-details" class="tab-content" style="padding: 30px;">
+                <h2 style="margin-bottom: 30px; color: var(--primary);">📄 รายละเอียดใบเสนอราคา</h2>
+
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                    <!-- PEA ENCOM Quotation Details -->
+                    <div style="padding: 20px; background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); border-top: 4px solid var(--primary);">
+                        <h4 style="color: var(--primary); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid var(--primary);">PEA ENCOM</h4>
+                        <p style="font-size: 11px; color: var(--text-light); margin-bottom: 15px;">QT-20260429004</p>
+                        <div style="background: #f9fafb; padding: 12px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.7;">
+<strong>ราคา:</strong>
+฿215,435 บาท
+ลด: ฿2,000 บาท
+หลังลด: ฿213,435 บาท
+VAT 7%: ฿14,940.45 บาท
+<strong>รวม: ฿228,375.45</strong>
+
+<strong>ระบบ:</strong>
+Solis On-Grid 6kW 1P
+Panel: LONGI 650W (10)
+Battery: SUNWODA 5kWh (x2)
+Inverter: Solis
+
+<strong>ประกัน:</strong>
+คุณภาพแผง: 12 ปี
+อินเวอร์เตอร์: 10 ปี
+แบตเตอรี่: 10 ปี
+ติดตั้ง: 1 ปี
+บริการ: 2 ปี
+สำรวจ: ฟรี
+                        </div>
+                    </div>
+
+                    <!-- บรรเจิด Quotation Details -->
+                    <div style="padding: 20px; background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); border-top: 4px solid var(--success);">
+                        <h4 style="color: var(--success); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid var(--success);">บรรเจิด วิศวกรรม</h4>
+                        <p style="font-size: 11px; color: var(--text-light); margin-bottom: 15px;">QT2026050012</p>
+                        <div style="background: #f9fafb; padding: 12px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.7;">
+<strong>ราคา:</strong>
+฿175,000 บาท
+ลด: ฿6,000 บาท
+หลังลด: ฿169,000 บาท
+<strong>รวม: ฿169,000</strong>
+(รวมภาษี 7% แล้ว)
+
+<strong>ระบบ:</strong>
+Solar Rooftop
+5.16 kWp
+
+<strong>ประกัน:</strong>
+ติดตั้ง: 5 ปี
+Product: 15 ปี
+Performance: 30 ปี
+อินเวอร์เตอร์: 10 ปี
+ตรวจสอบ: 3 ครั้ง
+Monitoring: มี
+                        </div>
+                    </div>
+
+                    <!-- ซันพาวเวอร์ Quotation Details -->
+                    <div style="padding: 20px; background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); border-top: 4px solid var(--warning);">
+                        <h4 style="color: var(--warning); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid var(--warning);">ซันพาวเวอร์ โปร</h4>
+                        <p style="font-size: 11px; color: var(--text-light); margin-bottom: 15px;">QT2026050078</p>
+                        <div style="background: #f9fafb; padding: 12px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.7;">
+<strong>ราคา:</strong>
+฿155,000 บาท
+<strong>รวม: ฿155,000</strong>
+(รวมภาษี 7% แล้ว)
+
+ไม่รวมภาษี:
+฿144,859.81 บาท
+VAT: ฿10,140.19 บาท
+
+<strong>ระบบ:</strong>
+Huawei Hybrid 5kW
+600VDC 2MPPT
+
+<strong>ประกัน:</strong>
+ติดตั้ง: 3 ปี
+แผง: 15/30 ปี
+อินเวอร์เตอร์: 10 ปี
+ล้างแผง: 2 ปี
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 4: Details Summary -->
+            <div id="details" class="tab-content" style="padding: 30px;">
+                <h2 style="margin-bottom: 20px; color: var(--primary);">📋 สรุปรายละเอียดของแต่ละบริษัท</h2>
+
+                <!-- Company 1 -->
+                <div class="company-card">
+                    <h3>✅ PEA ENCOM</h3>
+                    <div class="detail-item">
+                        <span class="label">บริษัท</span>
+                        <span class="value badge badge-company">PEA ENCOM</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">เว็บไซต์</span>
+                        <span class="value">peaencomsmart.com</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">อีเมล</span>
+                        <span class="value">contact@peaencomsmart.com</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">เลขที่เสนอราคา</span>
+                        <span class="value">QT-20260429004</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">วันที่</span>
+                        <span class="value">29/04/2026</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">ระบบ</span>
+                        <span class="value">Solis On-Grid 6kW 1P</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">จำนวนหน้า</span>
+                        <span class="value">2 หน้า</span>
+                    </div>
+                    <div class="price-row">
+                        <div class="price-item">
+                            <div class="label">ยอดรวม (ก่อนลด)</div>
+                            <div class="amount">฿215,435.00</div>
+                        </div>
+                        <div class="price-item">
+                            <div class="label">ส่วนลด</div>
+                            <div class="amount" style="color: var(--success);">-฿2,000.00</div>
+                        </div>
+                    </div>
+                    <div class="price-row">
+                        <div class="price-item">
+                            <div class="label">ยอดหลังหักส่วนลด</div>
+                            <div class="amount">฿213,435.00</div>
+                        </div>
+                        <div class="price-item">
+                            <div class="label">ภาษี 7%</div>
+                            <div class="amount">฿14,940.45</div>
+                        </div>
+                    </div>
+                    <div class="price-row">
+                        <div class="price-item total">
+                            <div class="label">จำนวนเงินทั้งสิ้น</div>
+                            <div class="amount">฿228,375.45</div>
+                        </div>
+                    </div>
+                    <p style="color: var(--text-light); font-size: 13px; margin-top: 15px;"><strong>สเปค:</strong></p>
+                    <ul class="specs-list">
+                        <li>Solis On-Grid 6kW 1P</li>
+                        <li>Panel: LONGI 650W (10 แผง)</li>
+                        <li>Battery: SUNWODA Atrix-5/5kWh (x2)</li>
+                        <li>Inverter: Solis</li>
+                    </ul>
+                    <p style="color: var(--text-light); font-size: 13px; margin-top: 15px;"><strong>การรับประกัน:</strong></p>
+                    <ul class="specs-list">
+                        <li><strong>ประกันคุณภาพแผง (Panel Quality):</strong> 12 ปี</li>
+                        <li><strong>ประกันอินเวอร์เตอร์ (Solis):</strong> 10 ปี</li>
+                        <li><strong>ประกันแบตเตอรี่ (SUNWODA):</strong> 10 ปี</li>
+                        <li><strong>ประกันติดตั้ง:</strong> 1 ปี</li>
+                        <li><strong>บริการหลังการขาย:</strong> 2 ปี (ล้างและตรวจสอบปีละ 1 ครั้ง)</li>
+                        <li><strong>บริการเพิ่มเติม:</strong> สำรวจไซต์ฟรี</li>
+                    </ul>
+                </div>
+
+                <!-- Company 2 -->
+                <div class="company-card">
+                    <h3>✅ บรรเจิด วิศวกรรม 1994 จำกัด</h3>
+                    <div class="detail-item">
+                        <span class="label">บริษัท</span>
+                        <span class="value badge badge-company">บรรเจิด วิศวกรรม 1994</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">เลขที่เสนอราคา</span>
+                        <span class="value">QT2026050012</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">วันที่</span>
+                        <span class="value">18/05/2026</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">หน้า</span>
+                        <span class="value">16 หน้า</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">ตาราง</span>
+                        <span class="value">23 ตาราง</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">ระบบ</span>
+                        <span class="value">Solar Rooftop System - 5.16 kWp</span>
+                    </div>
+                    <div class="price-row">
+                        <div class="price-item">
+                            <div class="label">ยอดรวม (ก่อนลด)</div>
+                            <div class="amount">฿175,000.00</div>
+                        </div>
+                        <div class="price-item">
+                            <div class="label">ส่วนลด</div>
+                            <div class="amount" style="color: var(--success);">-฿6,000.00</div>
+                        </div>
+                    </div>
+                    <div class="price-row">
+                        <div class="price-item">
+                            <div class="label">ยอดหลังหักส่วนลด</div>
+                            <div class="amount">฿169,000.00</div>
+                        </div>
+                        <div class="price-item total">
+                            <div class="label">จำนวนเงินทั้งสิ้น</div>
+                            <div class="amount">฿169,000.00</div>
+                        </div>
+                    </div>
+                    <p style="color: var(--text-light); font-size: 13px; margin-top: 15px;"><strong>การรับประกัน:</strong></p>
+                    <ul class="specs-list">
+                        <li><strong>ประกันติดตั้ง:</strong> 5 ปี</li>
+                        <li><strong>ประกันแผงโซลาร์เซลล์ (Product Warranty):</strong> 15 ปี</li>
+                        <li><strong>ประกันประสิทธิภาพ (Performance Warranty):</strong> 30 ปี</li>
+                        <li><strong>ประกันอินเวอร์เตอร์:</strong> 10 ปี</li>
+                        <li><strong>บริการตรวจสอบและล้างแผง:</strong> 3 ครั้ง (ปีละ 1 ครั้ง)</li>
+                        <li><strong>ระบบ Monitoring:</strong> สามารถตรวจสอบการทำงานได้ผ่านอินเทอร์เน็ต</li>
+                    </ul>
+                </div>
+
+                <!-- Company 3 -->
+                <div class="company-card">
+                    <h3>✅ ซันพาวเวอร์ โปร จำกัด</h3>
+                    <div class="detail-item">
+                        <span class="label">บริษัท</span>
+                        <span class="value badge badge-company">ซันพาวเวอร์ โปร จำกัด</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">เลขที่เสนอราคา</span>
+                        <span class="value">QT2026050078</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">หน้า</span>
+                        <span class="value">3 หน้า</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">ตาราง</span>
+                        <span class="value">2 ตาราง</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">ระบบ</span>
+                        <span class="value">Huawei Hybrid 5kW 1ph 600VDC 2MPPT</span>
+                    </div>
+                    <div class="price-row">
+                        <div class="price-item">
+                            <div class="label">ยอดรวม</div>
+                            <div class="amount">฿155,000.00</div>
+                        </div>
+                        <div class="price-item total">
+                            <div class="label">จำนวนเงินทั้งสิ้น</div>
+                            <div class="amount">฿155,000.00</div>
+                        </div>
+                    </div>
+                    <p style="color: var(--text-light); font-size: 13px; margin-top: 15px;"><strong>การรับประกัน:</strong></p>
+                    <ul class="specs-list">
+                        <li><strong>ประกันติดตั้ง:</strong> 3 ปี</li>
+                        <li><strong>ประกันแผงโซลาร์เซลล์ (จากผู้ผลิต):</strong> 15/30 ปี</li>
+                        <li><strong>ประกันอินเวอร์เตอร์:</strong> 10 ปี (Huawei Hybrid)</li>
+                        <li><strong>บริการล้างแผงโซลาร์เซลล์:</strong> ฟรี 2 ปี (ปีละ 1 ครั้ง)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Tab 3: Breakdown -->
+            <div id="breakdown" class="tab-content" style="padding: 30px;">
+                <h2 style="margin-bottom: 20px; color: var(--primary);">💰 การคำนวณราคาแบบละเอียด</h2>
+
+                <!-- PEA ENCOM -->
+                <div class="detail-section">
+                    <h4>🔍 PEA ENCOM (QT-20260429004)</h4>
+                    <div style="padding: 15px; background: white; border-radius: 6px; margin-top: 10px;">
+                        <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; margin-bottom: 10px; padding: 10px; border: 1px solid var(--border); border-radius: 4px;">
+                            <span>1. ยอดรวม (ก่อนลด)</span>
+                            <span style="font-weight: 700;">฿215,435.00</span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; margin-bottom: 10px; padding: 10px; border: 1px solid var(--border); border-radius: 4px;">
+                            <span>2. ลบ ส่วนลด</span>
+                            <span style="font-weight: 700; color: var(--success);">-฿2,000.00</span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; margin-bottom: 10px; padding: 10px; border: 1px solid var(--bg); border-radius: 4px; background: #f0fdf4;">
+                            <span style="font-weight: 700;">= ยอดหลังหักส่วนลด</span>
+                            <span style="font-weight: 700; color: var(--success);">฿213,435.00</span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; margin-bottom: 10px; padding: 10px; border: 1px solid var(--border); border-radius: 4px;">
+                            <span>3. คำนวณ VAT 7% (213,435 × 0.07)</span>
+                            <span style="font-weight: 700;">฿14,940.45</span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; padding: 12px; border: 2px solid var(--success); border-radius: 4px; background: #f0fdf4;">
+                            <span style="font-weight: 700;">= จำนวนเงินทั้งสิ้น</span>
+                            <span style="font-weight: 700; color: var(--success); font-size: 16px;">฿228,375.45</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- บรรเจิด -->
+                <div class="detail-section">
+                    <h4>🔍 บรรเจิด วิศวกรรม 1994 (QT2026050012)</h4>
+                    <div style="padding: 15px; background: white; border-radius: 6px; margin-top: 10px;">
+                        <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; margin-bottom: 10px; padding: 10px; border: 1px solid var(--border); border-radius: 4px;">
+                            <span>1. รวมเป็นเงิน (ราคาเต็ม)</span>
+                            <span style="font-weight: 700;">฿175,000.00</span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; margin-bottom: 10px; padding: 10px; border: 1px solid var(--border); border-radius: 4px;">
+                            <span>2. ลบ ส่วนลด</span>
+                            <span style="font-weight: 700; color: var(--success);">-฿6,000.00</span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; padding: 12px; border: 2px solid var(--success); border-radius: 4px; background: #f0fdf4;">
+                            <span style="font-weight: 700;">= จำนวนเงินทั้งสิ้น (รวมภาษี 7% แล้ว)</span>
+                            <span style="font-weight: 700; color: var(--success); font-size: 16px;">฿169,000.00</span>
+                        </div>
+                        <div style="margin-top: 15px; padding: 10px; background: #f0f9ff; border-radius: 4px; border-left: 3px solid var(--primary);">
+                            <p style="font-size: 12px; color: var(--primary); margin-bottom: 8px; font-weight: 600;">📊 วิเคราะห์ 169,000 บาท:</p>
+                            <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; margin-bottom: 8px; padding: 8px;">
+                                <span style="font-size: 12px;">ราคาไม่รวมภาษี (169,000 ÷ 1.07)</span>
+                                <span style="font-weight: 700;">฿157,943.93</span>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; padding: 8px;">
+                                <span style="font-size: 12px;">ภาษี 7% (157,943.93 × 0.07)</span>
+                                <span style="font-weight: 700;">฿11,056.07</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ซันพาวเวอร์ -->
+                <div class="detail-section">
+                    <h4>🔍 ซันพาวเวอร์ โปร (QT2026050078)</h4>
+                    <div style="padding: 15px; background: white; border-radius: 6px; margin-top: 10px;">
+                        <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; padding: 12px; border: 2px solid var(--success); border-radius: 4px; background: #f0fdf4; margin-bottom: 15px;">
+                            <span style="font-weight: 700;">รวมเป็นเงิน (ราคาสุดท้าย)</span>
+                            <span style="font-weight: 700; color: var(--success); font-size: 16px;">฿155,000.00</span>
+                        </div>
+                        <div style="margin-top: 15px; padding: 10px; background: #f0f9ff; border-radius: 4px; border-left: 3px solid var(--primary);">
+                            <p style="font-size: 12px; color: var(--primary); margin-bottom: 8px; font-weight: 600;">📊 วิเคราะห์ 155,000 บาท:</p>
+                            <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; margin-bottom: 8px; padding: 8px;">
+                                <span style="font-size: 12px;">ราคาไม่รวมภาษี</span>
+                                <span style="font-weight: 700;">฿144,859.81</span>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; padding: 8px;">
+                                <span style="font-size: 12px;">ภาษี 7% (144,859.81 × 0.07)</span>
+                                <span style="font-weight: 700;">฿10,140.19</span>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; padding: 8px; margin-top: 8px; border-top: 1px solid #e5e7eb;">
+                                <span style="font-size: 12px; font-weight: 600;">รวมทั้งสิ้น</span>
+                                <span style="font-weight: 700;">฿155,000.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h4>🛡️ ข้อมูลการรับประกัน</h4>
+                    <table style="margin-top: 10px;">
+                        <thead>
+                            <tr>
+                                <th>บริษัท</th>
+                                <th>ประกัน</th>
+                                <th>ส่วนประกอบ</th>
+                                <th>หมายเหตุ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>PEA ENCOM</strong></td>
+                                <td><span class="warranty">ไม่ระบุ</span></td>
+                                <td>-</td>
+                                <td style="font-size: 12px; color: var(--text-light);">ต้องตรวจสอบเพิ่มเติม</td>
+                            </tr>
+                            <tr style="background: #f9fafb;">
+                                <td><strong>บรรเจิด วิศวกรรม</strong></td>
+                                <td>
+                                    <div style="font-size: 12px; line-height: 1.6;">
+                                        <span class="warranty">5 ปี</span> ติดตั้ง<br>
+                                        <span class="warranty">15 ปี</span> แผง<br>
+                                        <span class="warranty">30 ปี</span> สมรรถนะ<br>
+                                        <span class="warranty">10 ปี</span> อินเวอร์เตอร์
+                                    </div>
+                                </td>
+                                <td style="font-size: 12px;">
+                                    ติดตั้ง + แผง + Performance + Inverter + ตรวจสอบ 3 ครั้ง
+                                </td>
+                                <td style="font-size: 12px; color: var(--text-light);">ครอบคลุม</td>
+                            </tr>
+                            <tr>
+                                <td><strong>ซันพาวเวอร์ โปร</strong></td>
+                                <td>
+                                    <div style="font-size: 12px; line-height: 1.6;">
+                                        <span class="warranty">3 ปี</span> ติดตั้ง<br>
+                                        <span class="warranty">15/30 ปี</span> แผง<br>
+                                        <span class="warranty">10 ปี</span> อินเวอร์เตอร์<br>
+                                        <span class="warranty">2 ปี</span> ล้างแผง
+                                    </div>
+                                </td>
+                                <td style="font-size: 12px;">
+                                    ติดตั้ง + แผงโซลาร์เซลล์ + Inverter Huawei Hybrid + ล้างแผงปีละ 1 ครั้ง
+                                </td>
+                                <td style="font-size: 12px; color: var(--text-light);">ครบวงจร</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Dashboard นี้สร้างจากการวิเคราะห์ไฟล์ PDF 3 ไฟล์ • ราคาแสดงเป็นบาท (฿) • เดือนพฤษภาคม 2026</p>
+        </footer>
+    </div>
+
+    <script>
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set first tab as active
+            document.querySelector('.tab-btn').classList.add('active');
+        });
+    </script>
+</body>
+</html>
